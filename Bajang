@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <limits> // Required for clearing input buffer
 using namespace std;
 
 struct User {
@@ -49,24 +50,37 @@ bool checkWinner(char board[3][3], char player) {
     return false;
 }
 
+void displayBoard(const char board[3][3]) {
+    cout << "\n";
+    for (int i = 0; i < 3; i++) {
+        cout << " " << board[i][0] << " | " << board[i][1] << " | " << board[i][2] << "\n";
+        if (i < 2) cout << "-----------\n";
+    }
+}
+
 void playTicTacToe() {
     char board[3][3] = {{'1','2','3'},{'4','5','6'},{'7','8','9'}};
     char currentPlayer = 'X';
     int moves = 0;
+    int choice; // Declare choice here
+    bool validMove = false;
 
     while (moves < 9) {
-        cout << "\n";
-        for (int i = 0; i < 3; i++) {
-            cout << board[i][0] << " | " << board[i][1] << " | " << board[i][2] << "\n";
-            if (i < 2) cout << "---------\n";
-        }
+        displayBoard(board);  // Use the display function
 
-        int choice;
         cout << "Player " << currentPlayer << " enter position (1-9): ";
         cin >> choice;
 
+        // Input validation
+         while (cin.fail()) {
+            cout << "Invalid input. Please enter a number between 1 and 9: ";
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cin >> choice;
+        }
+
         if (choice < 1 || choice > 9) {
-            cout << "Invalid move!\n";
+            cout << "Invalid move! Please enter a number between 1 and 9.\n";
             continue;
         }
 
@@ -76,49 +90,68 @@ void playTicTacToe() {
         if (board[row][col] != 'X' && board[row][col] != 'O') {
             board[row][col] = currentPlayer;
             moves++;
+            validMove = true; //set validMove to true if the move is valid
 
             if (checkWinner(board, currentPlayer)) {
+                displayBoard(board);
                 cout << "\nPlayer " << currentPlayer << " has won!\n";
-                for (int i = 0; i < 3; i++) {
-                    cout << board[i][0] << " | " << board[i][1] << " | " << board[i][2] << "\n";
-                    if (i < 2) cout << "---------\n";
-                }
-                return;
+                return; // Exit the function after a win
             }
 
             currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
         } else {
             cout << "Position already taken!\n";
+            validMove = false; //set validMove to false if the move is invalid
         }
     }
 
+    displayBoard(board);
     cout << "\nIt's a draw!\n";
 }
 
 int main() {
     int choice;
+    string username; // Store the username after successful sign-in
+
     while (true) {
-        cout << "\n1. Sign Up\n2. Sign In\n3. Exit\nChoice: ";
+        cout << "\n===== Tic-Tac-Toe Game =====\n"; // Added title
+        cout << "1. Sign Up\n2. Sign In\n3. Exit\nChoice: ";
         cin >> choice;
 
+        // Input validation for main menu
+        while (cin.fail()) {
+            cout << "Invalid input. Please enter 1, 2, or 3: ";
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cin >> choice;
+        }
+
         if (choice == 1) {
-            string username, password;
+            string newUsername, password;
             cout << "Enter username: ";
-            cin >> username;
+            cin >> newUsername;
             cout << "Enter password: ";
             cin >> password;
-            signup(username, password);
+            signup(newUsername, password);
 
         } else if (choice == 2) {
-            string username, password;
+            string inputUsername, password;
             cout << "Enter username: ";
-            cin >> username;
+            cin >> inputUsername;
             cout << "Enter password: ";
             cin >> password;
 
-            if (signin(username, password)) {
+            if (signin(inputUsername, password)) {
+                username = inputUsername; // Store the username
                 cout << "\nWelcome " << username << "!\n";
-                playTicTacToe();
+
+                // Play multiple games until the user chooses to exit
+                char playAgain;
+                do {
+                    playTicTacToe();
+                    cout << "Play another round? (y/n): ";
+                    cin >> playAgain;
+                } while (playAgain == 'y' || playAgain == 'Y');
             } else {
                 cout << "Wrong Password or Username!\n";
             }
